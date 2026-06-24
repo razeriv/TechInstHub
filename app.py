@@ -1566,23 +1566,21 @@ def api_profile():
         conn.close()
 
 
-@app.route('/api/v1/projects', methods=['GET'])
-def api_get_projects():
+@app.route('/api/v1/topics', methods=['GET'], strict_slashes=False)
+def api_get_topics():
     conn = get_db_connection()
     cur = conn.cursor()
     try:
         cur.execute("""
-            SELECT p.id, p.title, p.description, p.difficulty, p.deadline, p.status,
-                   p.max_students, u.first_name || ' ' || u.last_name as tutor_name,
-                   (SELECT image_url FROM images WHERE entity_type='project' 
-                    AND entity_id=p.id ORDER BY sort_order LIMIT 1) as image_url
-            FROM projects p
-            JOIN users u ON p.id_tutor = u.id
-            WHERE p.status = 'открыт'
-            ORDER BY p.created_at DESC
+            SELECT id, name
+            FROM topics
+            ORDER BY name
         """)
-        projects = cur.fetchall()
-        return jsonify([dict(p) for p in projects])
+        rows = cur.fetchall()
+        return jsonify([dict(r) for r in rows]), 200
+    except Exception as e:
+        print(f"[ERROR] get_topics: {e}")
+        return jsonify({"error": "Не удалось загрузить темы"}), 500
     finally:
         cur.close()
         conn.close()
@@ -1980,6 +1978,25 @@ def api_list_users():
     except Exception as e:
         print(f"[ERROR] list_users: {e}")
         return jsonify({"error": "Не удалось загрузить список пользователей"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/api/v1/topics', methods=['GET'], strict_slashes=False)
+def api_get_topics():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT id, name
+            FROM topics
+            ORDER BY name
+        """)
+        rows = cur.fetchall()
+        return jsonify([dict(r) for r in rows]), 200
+    except Exception as e:
+        print(f"[ERROR] get_topics: {e}")
+        return jsonify({"error": "Не удалось загрузить темы"}), 500
     finally:
         cur.close()
         conn.close()
